@@ -6,7 +6,7 @@
     compose_arch: "{{ 'aarch64' if ansible_architecture in ['aarch64','arm64'] else 'x86_64' }}"
   tasks:
     - name: Install Python3 and docker
-      yum:
+      apt:
         name:
           - python3
           - docker
@@ -23,7 +23,7 @@
         dest: "/usr/libexec/docker/cli-plugins/docker-compose"
         mode: "0755"
     - name: Ensure Docker Compose v2 plugin is installed (skip on Amazon Linux)
-      yum:
+      apt:
         name: docker-compose-plugin
         state: present
         update_cache: yes
