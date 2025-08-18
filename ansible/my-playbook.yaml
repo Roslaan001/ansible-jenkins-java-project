@@ -1,44 +1,43 @@
-- name: Install Python3, docker and docker compose
+- name: Install Python3, Docker, and Docker Compose
   hosts: tag_Name_ansible_server
   become: true
   vars:
-    compose_version: "v2.27.0"
-    compose_arch: "{{ 'aarch64' if ansible_architecture in ['aarch64','arm64'] else 'x86_64' }}"
+    docker_packages:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
   tasks:
-    - name: Update apt cache and install Python3 + Docker
+    - name: Install Python3
       apt:
-        name:
-          - python3
-          - docker.io
-        state: present
-        update_cache: yes
-    - name: Ensure Docker is started and enabled
-      systemd:
-        name: docker
-        state: started
-        enabled: true
-    - name: Ensure CLI plugins directory exists
-      file:
-        path: /usr/libexec/docker/cli-plugins
-        state: directory
-        mode: "0755"
-    - name: Download docker-compose v2 plugin binary
-      get_url:
-        url: "https://github.com/docker/compose/releases/download/{{ compose_version }}/docker-compose-linux-{{ compose_arch }}"
-        dest: "/usr/libexec/docker/cli-plugins/docker-compose"
-        mode: "0755"
-    - name: Ensure Docker Compose v2 plugin (Ubuntu only)
-      apt:
-        name: docker-compose-plugin
-        state: present
+        name: python3
+        state: latest
         update_cache: yes
       when: ansible_distribution == "Ubuntu"
-    - name: Install docker compose
-      get_url:
-        url: https://github.com/docker/compose/releases/latest/download/docker-compose-linux-{{lookup('pipe', 'uname -m')}}
-        dest: /usr/local/bin/docker-compose
-        mode: +x
-    - name: Start Docker daemon
+    - name: Add Docker GPG key (Ubuntu only)
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+      when: ansible_distribution == "Ubuntu"
+    - name: Add Docker repository (Ubuntu only)
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+      when: ansible_distribution == "Ubuntu"
+    - name: Install Docker packages (Ubuntu only)
+      apt:
+        name: "{{ docker_packages }}"
+        state: latest
+        update_cache: yes
+      when: ansible_distribution == "Ubuntu"
+    - name: Install Docker on Amazon Linux
+      yum:
+        name: docker
+        state: latest
+      when: ansible_distribution == "Amazon"
+    - name: Start and enable Docker service
       systemd:
         name: docker
         state: started
+        enabled: yes
