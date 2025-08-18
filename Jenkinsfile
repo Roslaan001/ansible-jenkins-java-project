@@ -21,8 +21,12 @@ pipeline {
                 ]) {
                     sshagent(['ansible-server-key']) {
                         sh '''
-                            rsync -avz -e "ssh -o StrictHostKeyChecking=no" $PRIVATE_KEY ubuntu@44.202.53.110:/home/ubuntu/ssh-key.pem
-                            ssh -o StrictHostKeyChecking=no ubuntu@44.202.53.110 'chmod 400 /home/ubuntu/ssh-key.pem'
+                              if [ ! -f /home/ubuntu/ssh-key.pem ]; then
+                    scp -o StrictHostKeyChecking=no $PRIVATE_KEY ubuntu@44.202.53.110:/home/ubuntu/ssh-key.pem
+                    ssh -o StrictHostKeyChecking=no ubuntu@44.202.53.110 'chmod 400 /home/ubuntu/ssh-key.pem'
+                  else
+                    echo "✅ Key already exists on Ansible server. Skipping copy..."
+                  fi
                         '''
                     }
                 }
