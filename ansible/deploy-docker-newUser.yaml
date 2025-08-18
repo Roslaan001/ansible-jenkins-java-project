@@ -1,0 +1,75 @@
+# The first playbook, installing docker and python3
+- name: Install Python3, docker and docker compose
+  hosts: tag_Name_dev_server
+  become: true
+  vars:
+    compose_version: "v2.27.0"
+    compose_arch: "{{ 'aarch64' if ansible_architecture in ['aarch64','arm64'] else 'x86_64' }}"
+  tasks:
+    - name: Install Python3 and docker
+      yum:
+        name:
+          - python3
+          - docker
+        update_cache: yes
+        state: latest
+    - name: Ensure CLI plugins directory exists (Amazon Linux)
+      file:
+        path: /usr/libexec/docker/cli-plugins
+        state: directory
+        mode: "0755"
+    - name: Download docker-compose v2 plugin binary
+      get_url:
+        url: "https://github.com/docker/compose/releases/download/{{ compose_version }}/docker-compose-linux-{{ compose_arch }}"
+        dest: "/usr/libexec/docker/cli-plugins/docker-compose"
+        mode: "0755"
+    - name: Ensure Docker Compose v2 plugin is installed (skip on Amazon Linux)
+      yum:
+        name: docker-compose-plugin
+        state: present
+        update_cache: yes
+      when: ansible_distribution != 'Amazon'
+    - name: Install docker compose
+      get_url:
+        url: https://github.com/docker/compose/releases/latest/download/docker-compose-linux-{{lookup('pipe', 'uname -m')}}
+        dest: /usr/local/bin/docker-compose
+        mode: +x
+    - name: Start Docker daemon
+      systemd:
+        name: docker
+        state: started
+# The fifth playbook, Adding docker as a usergroup
+- name: Create new Linux User
+  hosts: tag_Name_dev_server
+  become: true
+  vars_files:
+    - vars
+  tasks:
+    - name: Create new linux user
+      user:
+        name: roslaan
+        groups: "{{ user_groups }}"
+        state: present
+        shell: /bin/bash
+#
+- name: Start docker container
+  hosts: tag_Name_dev_server
+  become: true
+  become_user: roslaan
+  vars_files:
+    - vars
+  tasks:
+    - name: copy docker compose file
+      copy:
+        src: /home/roslaan001/Documents/bootcamp-java-mysql-project/docker-compose-full.yaml
+        dest: /home/roslaan/docker-compose.yaml
+    - name: Docker login
+      community.docker.docker_login:
+        registry_url: https://index.docker.io/v1/
+        username: "abdulsomad005"
+        password: "{{ docker_password }}"
+        state: present
+    - name: Start container from docker compose
+      community.docker.docker_compose_v2:
+        project_src: /home/roslaan/
+        state: present
