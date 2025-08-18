@@ -14,10 +14,10 @@ pipeline {
                 // Copy the same private key but under a new name on the server
                 withCredentials([sshUserPrivateKey(credentialsId: 'ansible-server-key', keyFileVariable: 'PRIVATE_KEY')]) {
                     sshagent(['ansible-server-key']) {
-                        sh """
+                        sh '''
                             scp -o StrictHostKeyChecking=no $PRIVATE_KEY ubuntu@44.202.53.110:/home/ubuntu/ssh-key.pem
                             ssh -o StrictHostKeyChecking=no ubuntu@44.202.53.110 'chmod 400 /home/ubuntu/ssh-key.pem'
-                        """
+                        '''
                     }
                 }
             }
