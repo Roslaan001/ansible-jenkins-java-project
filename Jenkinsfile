@@ -8,7 +8,7 @@ pipeline {
                     sh "scp -o StrictHostKeyChecking=no ./ansible/* ubuntu@44.203.203.102:/home/ubuntu"
 
                     withCredentials([sshUserPrivateKey(credentialsId: 'ec2-server-key', keyFileVariable: 'keyFile', usernameVariable: 'user')]) {
-                        sh "scp ${keyFile} ubuntu@44.203.203.102:/home/ubuntu/ssh-key.pem"
+                        sh "scp StrictHostKeyChecking=no ${keyFile} ubuntu@44.203.203.102:/home/ubuntu/ssh-key.pem"
                     }
                 }
 
