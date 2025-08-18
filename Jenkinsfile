@@ -9,7 +9,7 @@ pipeline {
 
                     withCredentials([sshUserPrivateKey(credentialsId: 'ec2-server-key', keyFileVariable: 'keyFile', usernameVariable: 'user')]) {
                     sh '''
-                      scp -o StrictHostKeyChecking=no -o IdentitiesOnly=yes "$keyFile" ubuntu@44.203.203.102:/home/ubuntu/ssh-key.pem
+                      scp -i "$keyFile" -o StrictHostKeyChecking=no -o IdentitiesOnly=yes ubuntu@44.203.203.102:/home/ubuntu/ssh-key.pem
                       ssh -o StrictHostKeyChecking=no -o IdentitiesOnly=yes ubuntu@44.203.203.102 'chmod 600 /home/ubuntu/ssh-key.pem'
                     '''
                     }
