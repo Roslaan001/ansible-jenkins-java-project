@@ -1,5 +1,5 @@
 - name: Install Python3, docker and docker compose
-  hosts: all
+  hosts: tag_Name_ansible_server
   become: true
   vars:
     compose_version: "v2.27.0"
@@ -9,7 +9,7 @@
       apt:
         name:
           - python3
-          - docker
+          - docker.io
         update_cache: yes
         state: latest
     - name: Ensure CLI plugins directory exists (Amazon Linux)
