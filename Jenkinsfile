@@ -46,7 +46,7 @@ pipeline {
                     ]) {
                         remote.user = 'ubuntu'
                         remote.identityFile = PRIVATE_KEY
-                        sshCommand remote: remote, command: "ls -l"
+                        sshCommand remote: remote, command: "ansible-playbook my-playbook.yml"
                 }
             }
         }
