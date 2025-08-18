@@ -5,14 +5,19 @@
     compose_version: "v2.27.0"
     compose_arch: "{{ 'aarch64' if ansible_architecture in ['aarch64','arm64'] else 'x86_64' }}"
   tasks:
-    - name: Install Python3 and docker
+    - name: Update apt cache and install Python3 + Docker
       apt:
         name:
           - python3
           - docker.io
+        state: present
         update_cache: yes
-        state: latest
-    - name: Ensure CLI plugins directory exists (Amazon Linux)
+    - name: Ensure Docker is started and enabled
+      systemd:
+        name: docker
+        state: started
+        enabled: true
+    - name: Ensure CLI plugins directory exists
       file:
         path: /usr/libexec/docker/cli-plugins
         state: directory
@@ -22,12 +27,12 @@
         url: "https://github.com/docker/compose/releases/download/{{ compose_version }}/docker-compose-linux-{{ compose_arch }}"
         dest: "/usr/libexec/docker/cli-plugins/docker-compose"
         mode: "0755"
-    - name: Ensure Docker Compose v2 plugin is installed (skip on Amazon Linux)
+    - name: Ensure Docker Compose v2 plugin (Ubuntu only)
       apt:
         name: docker-compose-plugin
         state: present
         update_cache: yes
-      when: ansible_distribution == 'Ubuntu'
+      when: ansible_distribution == "Ubuntu"
     - name: Install docker compose
       get_url:
         url: https://github.com/docker/compose/releases/latest/download/docker-compose-linux-{{lookup('pipe', 'uname -m')}}
