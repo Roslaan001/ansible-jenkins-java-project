@@ -20,8 +20,8 @@ pipeline {
                     )
                 ]) {
                     sshagent(['ansible-server-key']) {
+                            // scp -o StrictHostKeyChecking=no $PRIVATE_KEY ubuntu@44.202.53.110:/home/ubuntu/ssh-key.pem
                         sh '''
-                            scp -o StrictHostKeyChecking=no $PRIVATE_KEY ubuntu@44.202.53.110:/home/ubuntu/ssh-key.pem
                             ssh -o StrictHostKeyChecking=no ubuntu@44.202.53.110 'chmod 400 /home/ubuntu/ssh-key.pem'
                         '''
                     }
