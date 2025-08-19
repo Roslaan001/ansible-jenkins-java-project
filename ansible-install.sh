@@ -8,4 +8,5 @@ sudo apt update -y
 sudo apt install -y ansible python3-pip
 
 # Install python dependencies globally
-sudo pip3 install boto3 botocore
+sudo pip3 install boto3 botocore --break-system-packages
+
