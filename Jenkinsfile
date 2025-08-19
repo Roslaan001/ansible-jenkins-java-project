@@ -1,6 +1,9 @@
 /* groovylint-disable DuplicateListLiteral, DuplicateStringLiteral */
 pipeline {
     agent any
+    environment {
+        ANSIBLE_SERVER = "44.202.53.110"
+    }
     stages {
         stage('Copy files to ansible server') {
             steps {
@@ -8,8 +11,8 @@ pipeline {
                 
                 // Test ssh connection and Copy ansible playbooks using ansible-server-key
                 sshagent(['ansible-server-key']) {
-                    sh "ssh -o StrictHostKeyChecking=no ubuntu@44.202.53.110 'echo ✅ Connected to Ansible Server'"
-                    sh 'scp -o StrictHostKeyChecking=no ./ansible/* ubuntu@44.202.53.110:/home/ubuntu'
+                    sh "ssh -o StrictHostKeyChecking=no ubuntu@${ANSIBLE_SERVER} 'echo ✅ Connected to Ansible Server'"
+                    sh "scp -o StrictHostKeyChecking=no ./ansible/* ubuntu@${ANSIBLE_SERVER}:/home/ubuntu"
                 }
 
                 // Copy the same private key but under a new name on the server
@@ -20,9 +23,9 @@ pipeline {
                     )
                 ]) {
                     sshagent(['ansible-server-key']) {
-                            // scp -o StrictHostKeyChecking=no $PRIVATE_KEY ubuntu@44.202.53.110:/home/ubuntu/ssh-key.pem
+                            // scp -o StrictHostKeyChecking=no $PRIVATE_KEY ubuntu@${ANSIBLE_SERVER}:/home/ubuntu/ssh-key.pem
                         sh '''
-                            ssh -o StrictHostKeyChecking=no ubuntu@44.202.53.110 'chmod 400 /home/ubuntu/ssh-key.pem'
+                            ssh -o StrictHostKeyChecking=no ubuntu@${ANSIBLE_SERVER} 'chmod 400 /home/ubuntu/ssh-key.pem'
                         '''
                     }
                 }
@@ -35,7 +38,7 @@ pipeline {
                     echo "Calling the ansible playbook to configure the ec2 instances"
                     def remote = [:]
                     remote.name = "ansible-server"
-                    remote.host = '44.202.53.110'
+                    remote.host = ANSIBLE_SERVER
                     remote.allowAnyHosts = true
 
                     withCredentials([
