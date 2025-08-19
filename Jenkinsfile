@@ -49,6 +49,7 @@ pipeline {
                     ]) {
                         remote.user = 'ubuntu'
                         remote.identityFile = PRIVATE_KEY
+                        sshScript remote: remote, script: "ansible-install.sh"
                         sshCommand remote: remote, command: "ansible-playbook my-playbook.yaml"
                 }
             }
